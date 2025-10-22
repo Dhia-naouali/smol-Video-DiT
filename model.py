@@ -117,7 +117,7 @@ class NDRoPE(nn.Module):
 
     def rope(self, pos, dim, theta):
         assert dim % 2 == 0, f"invalid dim ({dim}) passed to rope"
-        scale = torch.arange(0, dim, 2) / dim
+        scale = torch.arange(0, dim, 2, dtype=torch.float32) / dim
         omega = 1. / (theta ** scale)
         angles = torch.einsum("...n, d -> ...nd", pos, omega)
         rot_mats = torch.stack([
@@ -228,7 +228,7 @@ if __name__ == "__main__":
     tt, yy, xx = torch.meshgrid(
         torch.arange(T), torch.arange(nh), torch.arange(nw), indexing="ij"
     )
-    x_ids = torch.stack([tt, yy, xx], dim=-1).reshape(1, L, 3).expand(B, -1, -1)
+    x_ids = torch.stack([tt, yy, xx], dim=-1).reshape(1, L, 3).expand(B, -1, -1).to(torch.float32)
     print(x_ids, )
     timestep = torch.randint(0, 1000, (B,), dtype=torch.float32)
 
