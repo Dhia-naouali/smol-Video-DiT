@@ -10,16 +10,9 @@ from torchvision.datasets import MovingMNIST
 
 from .model import DiT
 from .noise import NoiseScheule
+from .utils import gen_ids, make_tuple
 
 torch.set_default_device("cuda:0")
-
-
-def gen_ids(B, T, nh, nw):
-    L = T * nh * nw
-    tt, yy, xx = torch.meshgrid(
-        torch.arange(T), torch.arange(nh), torch.arange(nw), indexing="ij"
-    )
-    return torch.stack([tt, yy, xx], dim=-1).reshape(1, L, 3).expand(B, -1, -1).to(torch.float32)
 
 
 def train(config):
@@ -35,7 +28,7 @@ def train(config):
     optimizer = optim.AdamW(model.parameters(), lr=config.lr)
     criterion = nn.MSELoss()
     noise_scheduler = NoiseScheule(1e3)
-    x_loc = gen_ids(config.batch_size, config.frames, config.pw, config.ph)
+    x_loc = gen_ids(config.batch_size, config.frames, *make_tuple(config.patch_size))
 
     for epoch in range(1, config.epochs+1):
         pb = tqdm(dataloader, desc=f"{epoch:>2}/{config.epochs}")

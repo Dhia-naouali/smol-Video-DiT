@@ -5,11 +5,7 @@ import torch.nn.functional as F
 import math
 from dataclasses import dataclass
 
-
-def make_tuple(num_or_tuple):
-    if isinstance(num_or_tuple, tuple):
-        return num_or_tuple
-    return (num_or_tuple, num_or_tuple)
+from .utils import make_tuple
 
 
 @dataclass
@@ -193,7 +189,7 @@ class DiT(nn.Module):
         for block in self.blocks:
             x = block(x, rope_embeds, cond_vec)
         
-        return self.adaln(x, cond_vec)
+        return self.adaln(x, cond_vec).reshape(b, t, c, h, w)
 
 
     def time_embedding(self, t, dim, max_period=10_000, time_factor=1000.):
@@ -229,7 +225,6 @@ if __name__ == "__main__":
         torch.arange(T), torch.arange(nh), torch.arange(nw), indexing="ij"
     )
     x_ids = torch.stack([tt, yy, xx], dim=-1).reshape(1, L, 3).expand(B, -1, -1).to(torch.float32)
-    print(x_ids, )
     timestep = torch.randint(0, 1000, (B,), dtype=torch.float32)
 
     fake_mode = FakeTensorMode()
@@ -238,6 +233,6 @@ if __name__ == "__main__":
     
     with fake_mode:
         model = DiT(config)
-        print(sum(p.numel() for p in model.parameters()))
-        recon_x = model(x, x_ids, timestep).reshape(B, T, C, H, W)
+        print(f'{sum(p.numel() for p in model.parameters()) * 1e-6:.3f}M params')
+        recon_x = model(x, x_ids, timestep)
         print(recon_x)
