@@ -1,11 +1,11 @@
 model:
   patch_size: 4
   frame_size: 64
-  embed_dim: 256
-  num_heads: 8
-  depth: 6
+  embed_dim: 32
+  num_heads: 2
+  depth: 2
   n_channels: 1
-  cond_dim: 256
+  cond_dim: 128
 
 lr: 1e-3
 epochs: 48

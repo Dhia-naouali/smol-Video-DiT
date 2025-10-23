@@ -1,9 +1,9 @@
+import math
+from dataclasses import dataclass
+
 import torch
 from torch import nn
 import torch.nn.functional as F
-
-import math
-from dataclasses import dataclass
 
 from .utils import make_tuple
 
@@ -113,7 +113,7 @@ class NDRoPE(nn.Module):
 
     def rope(self, pos, dim, theta):
         assert dim % 2 == 0, f"invalid dim ({dim}) passed to rope"
-        scale = torch.arange(0, dim, 2, dtype=torch.float32) / dim
+        scale = torch.arange(0, dim, 2).to(pos) / dim
         omega = 1. / (theta ** scale)
         angles = torch.einsum("...n, d -> ...nd", pos, omega)
         rot_mats = torch.stack([
@@ -133,7 +133,7 @@ class AdaLN(nn.Module):
         )
 
     def forward(self, x, cond_vec):
-        shift, scale = self.modulation(cond_vec).chunk(2, dim=1)
+        shift, scale = self.modulation(cond_vec).chunk(2, dim=-1)
         x = (1 + scale[:, None]) * self.norm(x) + shift[:, None]
         return self.proj_out(x)
 
@@ -192,13 +192,13 @@ class DiT(nn.Module):
 
 
     def time_embedding(self, t, dim, max_period=10_000, time_factor=1000.):
-        t *= time_factor
         assert dim % 2 == 0, f"invalid dim ({dim}) passed to sinusoidal pos embedding"
-        freqs = torch.exp(-math.log(max_period) * torch.arange(0, dim/2, dtype=torch.float32)).to(t)
+        half = dim//2
+        t = time_factor * t.float().view(-1)
+        freqs = torch.exp(-math.log(max_period) * torch.arange(0, half, dtype=torch.float32) / half).cuda()
         args = t[:, None] * freqs[None]
         return torch.cat([torch.cos(args), torch.sin(args)], dim=-1)
-    
-
+        
 
 if __name__ == "__main__":
     from types import SimpleNamespace

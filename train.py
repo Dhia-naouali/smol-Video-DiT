@@ -22,11 +22,14 @@ def train(config):
         num_workers=os.cpu_count(),
     )
 
-    model = torch.compile(DiT(config.model).cuda())
+    # model = torch.compile(DiT(config.model).cuda())
+    model = DiT(config.model).cuda()
     optimizer = optim.AdamW(model.parameters(), lr=config.lr)
     criterion = nn.MSELoss()
     diffuser = CumRetentionSchedule(1000)
-    x_loc = gen_ids(config.batch_size, config.frames, *make_tuple(config.patch_size))
+    ph, pw = make_tuple(config.patch_size)
+    h, w = make_tuple(config.model.frame_size)
+    x_loc = gen_ids(config.batch_size, config.frames, h//ph, w//pw)
     x_loc = x_loc.cuda()
 
     for epoch in range(1, config.epochs+1):
