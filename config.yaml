@@ -1,0 +1,17 @@
+model:
+  patch_size: 4
+  frame_size: 16
+  embed_dim: 256
+  num_heads: 4
+  depth: 2
+  n_channels: 1
+  cond_dim: 256
+
+lr: 1e-3
+epochs: 48
+batch_size: 64
+
+frames: 20
+patch_size: 4
+
+checkpoint_every: 5
