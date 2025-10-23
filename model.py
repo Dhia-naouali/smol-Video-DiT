@@ -149,7 +149,6 @@ class DiT(nn.Module):
         self.cond_dim = config.cond_dim
         self.embed_dim = config.embed_dim
         self.num_heads = config.num_heads
-        # c = config.get("n_channels", 1)
         c = config.n_channels
         assert self.embed_dim % self.num_heads == 0, f"Invalid embed dim({self.embed_dim}), num heads({self.num_heads}) config"
 
