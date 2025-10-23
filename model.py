@@ -194,7 +194,7 @@ class DiT(nn.Module):
     def time_embedding(self, t, dim, max_period=10_000, time_factor=1000.):
         t *= time_factor
         assert dim % 2 == 0, f"invalid dim ({dim}) passed to sinusoidal pos embedding"
-        freqs = torch.exp(-math.log(max_period) * torch.arange(0, dim/2))
+        freqs = torch.exp(-math.log(max_period) * torch.arange(0, dim/2, dtype=torch.float32)).to(t)
         args = t[:, None] * freqs[None]
         return torch.cat([torch.cos(args), torch.sin(args)], dim=-1)
     

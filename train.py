@@ -9,10 +9,8 @@ from torch.utils.data import DataLoader
 from torchvision.datasets import MovingMNIST
 
 from .model import DiT
-from .noise import LinearScheule, CumRetentionSchedule
+from .noise import LinearSchedule, CumRetentionSchedule
 from .utils import gen_ids, make_tuple
-
-torch.set_default_device("cuda:0")
 
 
 def train(config):
@@ -24,16 +22,17 @@ def train(config):
         num_workers=os.cpu_count(),
     )
 
-    model = torch.compile(DiT(config.model))
+    model = torch.compile(DiT(config.model).cuda())
     optimizer = optim.AdamW(model.parameters(), lr=config.lr)
     criterion = nn.MSELoss()
-    diffuser = CumRetentionSchedule(1e3)
+    diffuser = CumRetentionSchedule(1000)
     x_loc = gen_ids(config.batch_size, config.frames, *make_tuple(config.patch_size))
+    x_loc = x_loc.cuda()
 
     for epoch in range(1, config.epochs+1):
         pb = tqdm(dataloader, desc=f"{epoch:>2}/{config.epochs}")
         for x_0 in pb:
-            x_0 = x_0 / 255. 
+            x_0 = x_0.cuda() / 255. 
 
             x_t, timesteps = diffuser(x_0)
             denoised_x = model(x_t, x_loc, timesteps)
@@ -42,7 +41,7 @@ def train(config):
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            wandb.log(loss=loss.itme())
+            wandb.log(loss=loss.time())
             pb.set_postfix(loss=loss.item())
         
         if epoch % config.checkpoint_every == 0:

@@ -9,24 +9,26 @@ class LinearSchedule:
         self.values = torch.linspace(min_val, max_val, n_steps)
     
     def __call__(self, x):
-        noise = torch.randn_like(x)
-        
         steps = torch.randint(self.n_steps, (x.size(0),))
-        steps = self.values[steps].view(-1, *([1] * (x.ndim-1)))
+        steps = self.values[steps].to(x).view(-1, *([1] * (x.ndim-1)))
+        
+        noise = torch.randn_like(x)
         x_t = x + steps * noise
         return x_t, steps
 
 
 class CumRetentionSchedule:
     def __init__(self, n_steps, beta_start=1e-4, beta_end=.02):
+        self.n_steps = n_steps
         self.values = torch.cumprod(
-            1. - torch.linspace(beta_start, beta_end, n_steps)
+            1. - torch.linspace(beta_start, beta_end, n_steps),
+            dim=0
         )
 
     def __call__(self, x):
-        noise = torch.randn_like(x)        
         steps = torch.randint(0, self.n_steps, (x.size(0),))
-        steps = self.values[steps].view(-1, *([1] * (x.ndim-1)))
+        steps = self.values[steps].to(x).view(-1, *([1] * (x.ndim-1)))
 
+        noise = torch.randn_like(x)
         x_t = steps.sqrt() * x + (1 - steps).sqrt() * noise
         return x_t, steps
