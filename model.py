@@ -171,7 +171,7 @@ class DiT(nn.Module):
         )
         self.adaln = AdaLN(self.embed_dim, self.ph * self.pw * c)
 
-    def forward(self, x, x_ids, timestep):
+    def forward(self, x, x_ids, timestep, rope_embeds=None):
         b, t, c, h, w = x.shape
         x = x.view(b, t, c, self.nh, self.ph, self.nw, self.pw) # b, t, c, n, p, n, p
         x = x.permute(0, 1, 3, 5, 2, 4, 6) # b, t, n, n, c, p, p
@@ -183,7 +183,8 @@ class DiT(nn.Module):
 
         x = self.proj_embed(x)
         cond_vec = self.time_embed_proj(self.time_embedding(timestep, self.cond_dim))
-        rope_embeds = self.nd_rope(x_ids)
+        if rope_embeds is None:
+            rope_embeds = self.nd_rope(x_ids)
 
         for block in self.blocks:
             x = block(x, rope_embeds, cond_vec)
