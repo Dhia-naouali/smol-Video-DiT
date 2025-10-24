@@ -20,6 +20,7 @@ def train(config):
         batch_size=config.batch_size,
         shuffle=True,
         num_workers=os.cpu_count(),
+        drop_last=True
     )
 
     model = torch.compile(DiT(config.model).cuda())
