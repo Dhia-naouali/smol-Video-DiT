@@ -8,9 +8,9 @@ from torch import nn, optim
 from torch.utils.data import DataLoader
 from torchvision.datasets import MovingMNIST
 
-from .model import DiT
-from .noise import LinearSchedule, CumRetentionSchedule
-from .utils import gen_ids, make_tuple
+from model import DiT
+from noise import LinearSchedule, CumRetentionSchedule
+from utils import gen_ids, make_tuple
 
 
 def train(config):
@@ -22,8 +22,7 @@ def train(config):
         num_workers=os.cpu_count(),
     )
 
-    # model = torch.compile(DiT(config.model).cuda())
-    model = DiT(config.model).cuda()
+    model = torch.compile(DiT(config.model).cuda())
     optimizer = optim.AdamW(model.parameters(), lr=config.lr)
     criterion = nn.MSELoss()
     diffuser = CumRetentionSchedule(1000)
@@ -44,7 +43,7 @@ def train(config):
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            wandb.log(loss=loss.time())
+            wandb.log({"loss": loss.item()})
             pb.set_postfix(loss=loss.item())
         
         if epoch % config.checkpoint_every == 0:

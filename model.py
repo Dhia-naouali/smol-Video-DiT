@@ -5,7 +5,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
-from .utils import make_tuple
+from utils import make_tuple
 
 
 @dataclass
