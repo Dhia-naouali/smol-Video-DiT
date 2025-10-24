@@ -52,7 +52,7 @@ def train(config):
 
 
 
-@hydra.main(config_path=".", config_name="config.yaml")
+@hydra.main(config_path=".", config_name="config.yaml", version_base=None)
 def main(config):
     wandb.init(
         project="Video-Dit",
