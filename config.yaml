@@ -1,15 +1,15 @@
 model:
   patch_size: 4
   frame_size: 64
-  embed_dim: 64
+  embed_dim: 256
   num_heads: 8
   depth: 4
   n_channels: 1
   cond_dim: 256
 
-lr: 1e-3
+lr: 1e-4
 epochs: 48
-batch_size: 64
+batch_size: 32
 
 frames: 20
 patch_size: 4
